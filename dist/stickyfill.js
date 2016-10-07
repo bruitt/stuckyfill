@@ -1,20 +1,16 @@
-/*!
- * Stickyfill -- `position: sticky` polyfill
- * v. 1.1.4 | https://github.com/wilddeer/stickyfill
- * Copyright Oleg Korsunsky | http://wd.dizaina.net/
- *
- * MIT License
- */
-(function(doc, win) {
+'use strict';
+
+(function (doc, win) {
     var watchArray = [],
         scroll,
         initialized = false,
         html = doc.documentElement,
-        noop = function() {},
+        noop = function noop() {},
         checkTimer,
 
-        //visibility API strings
-        hiddenPropertyName = 'hidden',
+
+    //visibility API strings
+    hiddenPropertyName = 'hidden',
         visibilityChangeEventName = 'visibilitychange';
 
     //fallback to prefixed names in old webkit browsers
@@ -35,8 +31,7 @@
     for (var i = prefixes.length - 1; i >= 0; i--) {
         try {
             block.style.position = prefixes[i] + 'sticky';
-        }
-        catch(e) {}
+        } catch (e) {}
         if (block.style.position != '') {
             seppuku();
         }
@@ -74,7 +69,7 @@
             rebuild();
             return;
         }
-        
+
         if (win.pageYOffset != scroll.top) {
             updateScrollPos();
             recalcAllPos();
@@ -83,7 +78,7 @@
 
     //fixes flickering
     function onWheel(event) {
-        setTimeout(function() {
+        setTimeout(function () {
             if (win.pageYOffset != scroll.top) {
                 scroll.top = win.pageYOffset;
                 recalcAllPos();
@@ -100,7 +95,7 @@
     function recalcElementPos(el) {
         if (!el.inited) return;
 
-        var currentMode = (scroll.top <= el.limit.start? 0: scroll.top >= el.limit.end? 2: 1);
+        var currentMode = scroll.top <= el.limit.start ? 0 : scroll.top >= el.limit.end ? 2 : 1;
 
         if (el.mode != currentMode) {
             switchElementMode(el, currentMode);
@@ -126,8 +121,7 @@
         el.inited = true;
 
         if (!el.clone) clone(el);
-        if (el.parent.computed.position != 'absolute' &&
-            el.parent.computed.position != 'relative') el.parent.node.style.position = 'relative';
+        if (el.parent.computed.position != 'absolute' && el.parent.computed.position != 'relative') el.parent.node.style.position = 'relative';
 
         recalcElementPos(el);
 
@@ -242,81 +236,78 @@
         node.style.position = 'relative';
 
         var computed = {
-                top: computedStyle.top,
-                marginTop: computedStyle.marginTop,
-                marginBottom: computedStyle.marginBottom,
-                marginLeft: computedStyle.marginLeft,
-                marginRight: computedStyle.marginRight,
-                cssFloat: computedStyle.cssFloat,
-                display: computedStyle.display
-            },
+            top: computedStyle.top,
+            marginTop: computedStyle.marginTop,
+            marginBottom: computedStyle.marginBottom,
+            marginLeft: computedStyle.marginLeft,
+            marginRight: computedStyle.marginRight,
+            cssFloat: computedStyle.cssFloat,
+            display: computedStyle.display
+        },
             numeric = {
-                top: parseNumeric(computedStyle.top),
-                marginBottom: parseNumeric(computedStyle.marginBottom),
-                paddingLeft: parseNumeric(computedStyle.paddingLeft),
-                paddingRight: parseNumeric(computedStyle.paddingRight),
-                borderLeftWidth: parseNumeric(computedStyle.borderLeftWidth),
-                borderRightWidth: parseNumeric(computedStyle.borderRightWidth)
-            };
+            top: parseNumeric(computedStyle.top),
+            marginBottom: parseNumeric(computedStyle.marginBottom),
+            paddingLeft: parseNumeric(computedStyle.paddingLeft),
+            paddingRight: parseNumeric(computedStyle.paddingRight),
+            borderLeftWidth: parseNumeric(computedStyle.borderLeftWidth),
+            borderRightWidth: parseNumeric(computedStyle.borderRightWidth)
+        };
 
         node.style.position = cachedPosition;
 
         var css = {
-                position: node.style.position,
-                top: node.style.top,
-                bottom: node.style.bottom,
-                left: node.style.left,
-                right: node.style.right,
-                width: node.style.width,
-                marginTop: node.style.marginTop,
-                marginLeft: node.style.marginLeft,
-                marginRight: node.style.marginRight
-            },
+            position: node.style.position,
+            top: node.style.top,
+            bottom: node.style.bottom,
+            left: node.style.left,
+            right: node.style.right,
+            width: node.style.width,
+            marginTop: node.style.marginTop,
+            marginLeft: node.style.marginLeft,
+            marginRight: node.style.marginRight
+        },
             nodeOffset = getElementOffset(node),
             parentOffset = getElementOffset(parentNode),
-            
             parent = {
-                node: parentNode,
-                css: {
-                    position: parentNode.style.position
-                },
-                computed: {
-                    position: parentComputedStyle.position
-                },
-                numeric: {
-                    borderLeftWidth: parseNumeric(parentComputedStyle.borderLeftWidth),
-                    borderRightWidth: parseNumeric(parentComputedStyle.borderRightWidth),
-                    borderTopWidth: parseNumeric(parentComputedStyle.borderTopWidth),
-                    borderBottomWidth: parseNumeric(parentComputedStyle.borderBottomWidth)
-                }
+            node: parentNode,
+            css: {
+                position: parentNode.style.position
             },
-
+            computed: {
+                position: parentComputedStyle.position
+            },
+            numeric: {
+                borderLeftWidth: parseNumeric(parentComputedStyle.borderLeftWidth),
+                borderRightWidth: parseNumeric(parentComputedStyle.borderRightWidth),
+                borderTopWidth: parseNumeric(parentComputedStyle.borderTopWidth),
+                borderBottomWidth: parseNumeric(parentComputedStyle.borderBottomWidth)
+            }
+        },
             el = {
-                node: node,
-                box: {
-                    left: nodeOffset.win.left,
-                    right: html.clientWidth - nodeOffset.win.right
-                },
-                offset: {
-                    top: nodeOffset.win.top - parentOffset.win.top - parent.numeric.borderTopWidth,
-                    left: nodeOffset.win.left - parentOffset.win.left - parent.numeric.borderLeftWidth,
-                    right: -nodeOffset.win.right + parentOffset.win.right - parent.numeric.borderRightWidth
-                },
-                css: css,
-                isCell: computedStyle.display == 'table-cell',
-                computed: computed,
-                numeric: numeric,
-                width: nodeOffset.win.right - nodeOffset.win.left,
-                height: nodeOffset.win.bottom - nodeOffset.win.top,
-                mode: -1,
-                inited: false,
-                parent: parent,
-                limit: {
-                    start: nodeOffset.doc.top - numeric.top,
-                    end: parentOffset.doc.top + parentNode.offsetHeight - parent.numeric.borderBottomWidth -
-                        node.offsetHeight - numeric.top - numeric.marginBottom
-                }
-            };
+            node: node,
+            box: {
+                left: nodeOffset.win.left,
+                right: html.clientWidth - nodeOffset.win.right
+            },
+            offset: {
+                top: nodeOffset.win.top - parentOffset.win.top - parent.numeric.borderTopWidth,
+                left: nodeOffset.win.left - parentOffset.win.left - parent.numeric.borderLeftWidth,
+                right: -nodeOffset.win.right + parentOffset.win.right - parent.numeric.borderRightWidth
+            },
+            css: css,
+            isCell: computedStyle.display == 'table-cell',
+            computed: computed,
+            numeric: numeric,
+            width: nodeOffset.win.right - nodeOffset.win.left,
+            height: nodeOffset.win.bottom - nodeOffset.win.top,
+            mode: -1,
+            inited: false,
+            parent: parent,
+            limit: {
+                start: nodeOffset.doc.top - numeric.top,
+                end: parentOffset.doc.top + parentNode.offsetHeight - parent.numeric.borderBottomWidth - node.offsetHeight - numeric.top - numeric.marginBottom
+            }
+        };
 
         return el;
     }
@@ -335,17 +326,17 @@
     function getElementOffset(node) {
         var box = node.getBoundingClientRect();
 
-            return {
-                doc: {
-                    top: box.top + win.pageYOffset,
-                    left: box.left + win.pageXOffset
-                },
-                win: box
-            };
+        return {
+            doc: {
+                top: box.top + win.pageYOffset,
+                left: box.left + win.pageXOffset
+            },
+            win: box
+        };
     }
 
     function startFastCheckTimer() {
-        checkTimer = setInterval(function() {
+        checkTimer = setInterval(function () {
             !fastCheck() && rebuild();
         }, 500);
     }
@@ -359,8 +350,7 @@
 
         if (document[hiddenPropertyName]) {
             stopFastCheckTimer();
-        }
-        else {
+        } else {
             startFastCheckTimer();
         }
     }
@@ -390,11 +380,11 @@
         if (!initialized) return;
 
         deinitAll();
-        
+
         for (var i = watchArray.length - 1; i >= 0; i--) {
             watchArray[i] = getElementParams(watchArray[i].node);
         }
-        
+
         initAll();
     }
 
@@ -412,7 +402,7 @@
 
     function stop() {
         pause();
-        deinitAll(); 
+        deinitAll();
     }
 
     function kill() {
@@ -437,8 +427,7 @@
 
         if (!initialized) {
             init();
-        }
-        else {
+        } else {
             initElement(el);
         }
     }
@@ -465,12 +454,11 @@
     };
 })(document, window);
 
-
 //if jQuery is available -- create a plugin
 if (window.jQuery) {
-    (function($) {
-        $.fn.Stickyfill = function(options) {
-            this.each(function() {
+    (function ($) {
+        $.fn.Stickyfill = function (options) {
+            this.each(function () {
                 Stickyfill.add(this);
             });
 
